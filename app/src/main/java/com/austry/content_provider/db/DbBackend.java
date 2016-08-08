@@ -68,9 +68,11 @@ public class DbBackend {
             base.delete(CoverContract.TABLE_NAME,
                     CoverContract.COLUMN_ID + " = ? ",
                     new String[]{String.valueOf(coverId)});
+
             base.delete(ArtistContract.TABLE_NAME,
                     ArtistContract.COLUMN_ID + " = ?",
                     new String[]{String.valueOf(artistId)});
+
             base.setTransactionSuccessful();
         } finally {
             base.endTransaction();
@@ -107,9 +109,8 @@ public class DbBackend {
                 null, null, null);
         if (cursor != null && cursor.moveToFirst()) {
             result = cursor.getLong(0);
+            cursor.close();
         }
-
-        cursor.close();
         return result;
     }
 
