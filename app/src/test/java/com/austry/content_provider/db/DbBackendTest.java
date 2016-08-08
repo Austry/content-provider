@@ -1,9 +1,9 @@
 package com.austry.content_provider.db;
 
-
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
+import android.support.annotation.NonNull;
 
 import com.austry.content_provider.db.contracts.ArtistContract;
 import com.austry.content_provider.db.contracts.ArtistGenreContract;
@@ -22,17 +22,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.atIndex;
 
 @RunWith(RobolectricTestRunner.class)
 public class DbBackendTest {
 
     private DbOpenHelper helper;
     private DbBackend backend;
-    private Artist firstArtistFromDb;
 
     @Before
     public void setUp() {
@@ -60,9 +56,58 @@ public class DbBackendTest {
         Artist testArtist = buildTestArtist();
 
         long artistId = backend.insertArtist(testArtist);
-
         Artist artistFromDb = getFirstArtistFromDb(artistId);
 
+        assertThat(artistFromDb).isEqualsToByComparingFields(testArtist);
+    }
+
+    @Test
+    public void getAll(){
+        Artist testArtist = buildTestArtist();
+        backend.insertArtist(testArtist);
+
+        Cursor cursor = backend.getAllArtists();
+        if(cursor != null && cursor.moveToFirst()){
+            Artist artistFromDb = new Artist();
+            artistFromDb.setId(cursor.getInt(0));
+            artistFromDb.setName(cursor.getString(1));
+            artistFromDb.setAlbums(cursor.getInt(2));
+            artistFromDb.setTracks(cursor.getInt(3));
+            artistFromDb.setDescription(cursor.getString(4));
+            artistFromDb.setLink(cursor.getString(5));
+
+            Cover cover = new Cover();
+            cover.setSmall(cursor.getString(6));
+            cover.setBig(cursor.getString(7));
+            artistFromDb.setCover(cover);
+            String genres = cursor.getString(8);
+            artistFromDb.setGenres(asList(genres.split(",")));
+
+            assertThat(artistFromDb).isEqualsToByComparingFields(testArtist);
+        }
+    }
+
+    @Test
+    public void delete(){
+        Artist testArtist = buildTestArtist();
+        long artistId = backend.insertArtist(testArtist);
+        backend.delete(artistId);
+
+        SQLiteDatabase base = helper.getReadableDatabase();
+        assertThat(getCount(base, ArtistContract.TABLE_NAME)).isEqualTo(0);
+        assertThat(getCount(base, CoverContract.TABLE_NAME)).isEqualTo(0);
+
+    }
+
+    @Test
+    public void update(){
+        Artist testArtist = buildTestArtist();
+        long artistId = backend.insertArtist(testArtist);
+        testArtist.setAlbums(4);
+        testArtist.setName("new_name");
+        backend.update(testArtist);
+
+        Artist artistFromDb = getFirstArtistFromDb(artistId);
         assertThat(artistFromDb).isEqualsToByComparingFields(testArtist);
 
     }
@@ -117,9 +162,7 @@ public class DbBackendTest {
     private List<String> getGenresFromBd(SQLiteDatabase db, long id) {
         List<String> genres = new LinkedList<>();
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-        qb.setTables(ArtistGenreContract.TABLE_NAME + " JOIN " + GenreContract.TABLE_NAME + " ON " +
-                ArtistGenreContract.TABLE_NAME + "." + ArtistGenreContract.COLUMN_GENRE_ID + " = " +
-                GenreContract.TABLE_NAME + "." + GenreContract.COLUMN_ID);
+        qb.setTables(getGenresJoinTable());
         qb.appendWhere(ArtistGenreContract.COLUMN_ARTIST_ID + " = " + id);
         Cursor cursor = qb.query(db, null, null, null, null, null, null);
 
@@ -132,6 +175,8 @@ public class DbBackendTest {
 
         return genres;
     }
+
+
 
     private Cover getCoverFromDb(SQLiteDatabase db, int coverId) {
         Cover result = new Cover();
@@ -156,6 +201,13 @@ public class DbBackendTest {
     private int getCount(SQLiteDatabase db, String table) {
         return DbUtils.getResultLongAndClose(
                 db.rawQuery("select count(*) from " + table, null)).intValue();
+    }
+
+    @NonNull
+    private String getGenresJoinTable() {
+        return ArtistGenreContract.TABLE_NAME + " JOIN " + GenreContract.TABLE_NAME + " ON " +
+                ArtistGenreContract.TABLE_NAME + "." + ArtistGenreContract.COLUMN_GENRE_ID + " = " +
+                GenreContract.TABLE_NAME + "." + GenreContract.COLUMN_ID;
     }
 
 }
