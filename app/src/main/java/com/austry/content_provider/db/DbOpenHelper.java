@@ -1,6 +1,7 @@
 package com.austry.content_provider.db;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -20,9 +21,11 @@ public class DbOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
+        enableWal(sqLiteDatabase);
+
         sqLiteDatabase.execSQL("CREATE TABLE " + ArtistContract.TABLE_NAME + "(" +
                 ArtistContract.COLUMN_ID + " INTEGER PRIMARY KEY, " +
-                ArtistContract.COLUMN_NAME + " TEXT NOT NULL, " +
+                ArtistContract.COLUMN_NAME + " TEXT NOT NULL UNIQUE, " +
                 ArtistContract.COLUMN_TRACKS + " INTEGER, " +
                 ArtistContract.COLUMN_ALBUMS + " INTEGER, " +
                 ArtistContract.COLUMN_LINK + " TEXT, " +
@@ -51,6 +54,13 @@ public class DbOpenHelper extends SQLiteOpenHelper {
                 ")"
         );
 
+    }
+
+    private void enableWal(SQLiteDatabase sqLiteDatabase) {
+        Cursor c = sqLiteDatabase.rawQuery("PRAGMA journal_mode=wal", null);
+        if(c != null){
+            c.close();
+        }
     }
 
     @Override

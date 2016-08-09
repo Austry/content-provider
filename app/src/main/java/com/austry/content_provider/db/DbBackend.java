@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
+import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
@@ -46,7 +47,7 @@ public class DbBackend {
 
     private DbOpenHelper dbHelper;
 
-    DbBackend(Context context) {
+    public DbBackend(Context context) {
         dbHelper = new DbOpenHelper(context);
     }
 
@@ -56,65 +57,53 @@ public class DbBackend {
     }
 
     public Cursor getAllArtists() {
+        return getAllArtists(null, null, null, null);
+    }
+
+    public Cursor getAllArtists(@Nullable String[] projection, @Nullable String selection,
+                                @Nullable String[] selectionArgs, @Nullable String sortOrder) {
         SQLiteDatabase base = dbHelper.getReadableDatabase();
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 
         qb.setTables(ALL_ARTISTS_TABLES);
-
-        return qb.query(base, ALL_ARTISTS_COLUMNS, null, null, null, null, null);
-    }
-
-    public void delete(long artistId) {
-        SQLiteDatabase base = dbHelper.getWritableDatabase();
-        base.beginTransaction();
-
-        try {
-            long coverId = getCoverId(base, artistId);
-            base.delete(CoverContract.TABLE_NAME,
-                    CoverContract.COLUMN_ID + " = ? ",
-                    new String[]{String.valueOf(coverId)});
-
-            base.delete(ArtistContract.TABLE_NAME,
-                    ArtistContract.COLUMN_ID + " = ?",
-                    new String[]{String.valueOf(artistId)});
-
-            base.setTransactionSuccessful();
-        } finally {
-            base.endTransaction();
+        if (projection == null || projection.length == 0) {
+            projection = ALL_ARTISTS_COLUMNS;
         }
+        return qb.query(base, projection, selection, selectionArgs, null, null, sortOrder);
     }
 
-    public void update(Artist artist) {
+    public int delete(String selection, String[] selectionArgs) {
         SQLiteDatabase base = dbHelper.getWritableDatabase();
-        base.beginTransaction();
-        try {
-            long coverId = getCoverId(base, artist.getId());
-            base.update(CoverContract.TABLE_NAME,
-                    fillCoverValues(artist.getCover()),
-                    CoverContract.COLUMN_ID + " = ?",
-                    new String[]{String.valueOf(coverId)});
-            base.update(ArtistContract.TABLE_NAME,
-                    fillArtistValues(artist, coverId),
-                    ArtistContract.COLUMN_ID + " = ?",
-                    new String[]{String.valueOf(artist.getId())});
-            base.setTransactionSuccessful();
-        } finally {
-            base.endTransaction();
+        return base.delete(ArtistContract.TABLE_NAME, selection, selectionArgs);
+    }
+
+    public int update(ContentValues contentValues, String selection, String[] selectionArgs) {
+        SQLiteDatabase base = dbHelper.getWritableDatabase();
+        return base.update(ArtistContract.TABLE_NAME, contentValues, selection, selectionArgs);
+    }
+
+
+    public long insertArtist(ContentValues cv) {
+        SQLiteDatabase base = dbHelper.getWritableDatabase();
+        long artistId = -1;
+        if (!cv.containsKey(ArtistContract.COLUMN_COVER_ID)) {
+            ContentValues coverValues = new ContentValues();
+            if (cv.containsKey(CoverContract.COLUMN_URL_SMALL)) {
+                coverValues.put(CoverContract.COLUMN_URL_SMALL, cv.getAsString(CoverContract.COLUMN_URL_SMALL));
+                cv.remove(CoverContract.COLUMN_URL_SMALL);
+            }
+
+            if (cv.containsKey(CoverContract.COLUMN_URL_BIG)) {
+                coverValues.put(CoverContract.COLUMN_URL_SMALL, cv.getAsString(CoverContract.COLUMN_URL_BIG));
+                cv.remove(CoverContract.COLUMN_URL_BIG);
+            }
+
+            long coverId = base.insert(CoverContract.TABLE_NAME, null, coverValues);
+            cv.put(ArtistContract.COLUMN_COVER_ID, coverId);
         }
 
-    }
-
-    private long getCoverId(SQLiteDatabase base, long artistId) {
-        long result = -1;
-
-        Cursor cursor = base.query(ArtistContract.TABLE_NAME,
-                new String[]{ArtistContract.COLUMN_COVER_ID},
-                ArtistContract.COLUMN_ID + " = ?",
-                new String[]{String.valueOf(artistId)},
-                null, null, null);
-        result = getResultLongAndClose(cursor);
-
-        return result;
+        artistId = base.insert(ArtistContract.TABLE_NAME, null, cv);
+        return artistId;
     }
 
     public long insertArtist(Artist artist) {
@@ -136,14 +125,20 @@ public class DbBackend {
         return artistId;
     }
 
-    public long getArtistsCount() {
-        long result = 0;
-        SQLiteDatabase base = dbHelper.getReadableDatabase();
-        Cursor cursor = base.rawQuery("select count(id) from " + ArtistContract.TABLE_NAME, null);
+
+
+    private long getCoverId(SQLiteDatabase base, long artistId) {
+        long result = -1;
+
+        Cursor cursor = base.query(ArtistContract.TABLE_NAME,
+                new String[]{ArtistContract.COLUMN_COVER_ID},
+                ArtistContract.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(artistId)},
+                null, null, null);
         result = getResultLongAndClose(cursor);
+
         return result;
     }
-
 
     private List<Long> getGenresIds(SQLiteDatabase base, List<String> genres) {
         List<Long> results = new LinkedList<>();
@@ -152,8 +147,6 @@ public class DbBackend {
             if (cursor != null && cursor.moveToFirst()) {
                 List<String> existedGenres = new ArrayList<>();
                 do {
-                    Log.d(TAG, "getGenresIds: id = " + cursor.getInt(0));
-                    Log.d(TAG, "getGenresIds: name = " + cursor.getString(1));
                     results.add((long) cursor.getInt(0));
                     existedGenres.add(cursor.getString(1));
                 } while (cursor.moveToNext());
@@ -221,7 +214,7 @@ public class DbBackend {
 
     private Cursor getGenresCursor(SQLiteDatabase base, List<String> genres) {
         int len = genres.size();
-        StringBuilder sb = new StringBuilder(len * 2 - 1);
+        StringBuilder sb = new StringBuilder();
         sb.append("?");
         for (int i = 1; i < len; i++) {
             sb.append(",?");

@@ -1,5 +1,6 @@
 package com.austry.content_provider.db;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
@@ -37,8 +38,17 @@ public class DbBackendTest {
     }
 
     @Test
-    public void initDb() {
-        assertThat(backend.getArtistsCount()).isEqualTo(0);
+    public void contentValuesInsertion() {
+        SQLiteDatabase db = helper.getReadableDatabase();
+        ContentValues artistValues = buildTestValues();
+        backend.insertArtist(artistValues);
+        assertThat(getCount(db, ArtistContract.TABLE_NAME)).isEqualTo(1);
+    }
+
+    private ContentValues buildTestValues() {
+        ContentValues cv = new ContentValues();
+        cv.put(ArtistContract.COLUMN_NAME, "testName");
+        return cv;
     }
 
     @Test
@@ -62,12 +72,12 @@ public class DbBackendTest {
     }
 
     @Test
-    public void getAll(){
+    public void getAll() {
         Artist testArtist = buildTestArtist();
         backend.insertArtist(testArtist);
 
         Cursor cursor = backend.getAllArtists();
-        if(cursor != null && cursor.moveToFirst()){
+        if (cursor != null && cursor.moveToFirst()) {
             Artist artistFromDb = new Artist();
             artistFromDb.setId(cursor.getInt(0));
             artistFromDb.setName(cursor.getString(1));
@@ -88,28 +98,14 @@ public class DbBackendTest {
     }
 
     @Test
-    public void delete(){
+    public void selectionDelete() {
         Artist testArtist = buildTestArtist();
         long artistId = backend.insertArtist(testArtist);
-        backend.delete(artistId);
+        int rowAffected = backend.delete(ArtistContract.COLUMN_ID + " = ?", new String[]{String.valueOf(artistId)});
 
         SQLiteDatabase base = helper.getReadableDatabase();
         assertThat(getCount(base, ArtistContract.TABLE_NAME)).isEqualTo(0);
-        assertThat(getCount(base, CoverContract.TABLE_NAME)).isEqualTo(0);
-
-    }
-
-    @Test
-    public void update(){
-        Artist testArtist = buildTestArtist();
-        long artistId = backend.insertArtist(testArtist);
-        testArtist.setAlbums(4);
-        testArtist.setName("new_name");
-        backend.update(testArtist);
-
-        Artist artistFromDb = getFirstArtistFromDb(artistId);
-        assertThat(artistFromDb).isEqualsToByComparingFields(testArtist);
-
+        assertThat(rowAffected).isEqualTo(1);
     }
 
     private Artist buildTestArtist() {
@@ -175,7 +171,6 @@ public class DbBackendTest {
 
         return genres;
     }
-
 
 
     private Cover getCoverFromDb(SQLiteDatabase db, int coverId) {
