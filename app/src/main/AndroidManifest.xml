@@ -17,7 +17,7 @@
 
         <provider
             android:authorities="com.austry.artistsProvider"
-            android:name="com.austry.content_provider.ArtistsProvider"
+            android:name=".provider.ArtistsProvider"
             android:exported="true"/>
 
     </application>

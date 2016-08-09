@@ -1,10 +1,8 @@
 package com.austry.content_provider;
 
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
 
 public class MainActivity extends AppCompatActivity {

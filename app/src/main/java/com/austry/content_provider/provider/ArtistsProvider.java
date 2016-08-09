@@ -1,4 +1,4 @@
-package com.austry.content_provider;
+package com.austry.content_provider.provider;
 
 import android.content.ContentProvider;
 import android.content.ContentResolver;
@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 
+import com.austry.content_provider.R;
 import com.austry.content_provider.db.DbBackend;
 import com.austry.content_provider.model.Artist;
 import com.fasterxml.jackson.core.type.TypeReference;

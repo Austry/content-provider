@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
-import android.util.Log;
 
 import com.austry.content_provider.db.contracts.ArtistContract;
 import com.austry.content_provider.db.contracts.ArtistGenreContract;
@@ -15,11 +14,13 @@ import com.austry.content_provider.db.contracts.CoverContract;
 import com.austry.content_provider.db.contracts.GenreContract;
 import com.austry.content_provider.model.Artist;
 import com.austry.content_provider.model.Cover;
+import com.austry.content_provider.provider.ArtistsProviderContract;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.austry.content_provider.db.DbUtils.addTablePrefix;
 import static com.austry.content_provider.db.DbUtils.getResultLongAndClose;
 
 public class DbBackend {
@@ -35,15 +36,16 @@ public class DbBackend {
             " GROUP BY " + addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_ID);
 
     private static final String[] ALL_ARTISTS_COLUMNS = {
-            addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_ID),
-            addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_NAME),
-            addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_ALBUMS),
-            addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_TRACKS),
-            addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_DESCRIPTION),
-            addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_LINK),
-            addTablePrefix(CoverContract.TABLE_NAME, CoverContract.COLUMN_URL_SMALL),
-            addTablePrefix(CoverContract.TABLE_NAME, CoverContract.COLUMN_URL_BIG),
-            "GROUP_CONCAT(" + addTablePrefix(GenreContract.TABLE_NAME, GenreContract.COLUMN_NAME) + ", ',')"};
+            ArtistsProviderContract.ID,
+            ArtistsProviderContract.NAME,
+            ArtistsProviderContract.ALBUMS,
+            ArtistsProviderContract.TRACKS,
+            ArtistsProviderContract.DESCRIPTION,
+            ArtistsProviderContract.LINK,
+            ArtistsProviderContract.URL_SMALL,
+            ArtistsProviderContract.URL_BIG,
+            ArtistsProviderContract.GENRES
+    };
 
     private DbOpenHelper dbHelper;
 
@@ -124,7 +126,6 @@ public class DbBackend {
         }
         return artistId;
     }
-
 
 
     private long getCoverId(SQLiteDatabase base, long artistId) {
@@ -226,7 +227,5 @@ public class DbBackend {
                 null, null, null);
     }
 
-    private static String addTablePrefix(String tableName, String columnAlbums) {
-        return tableName + "." + columnAlbums;
-    }
+
 }

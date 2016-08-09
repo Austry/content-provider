@@ -1,9 +1,5 @@
-package com.austry.content_provider;
+package com.austry.content_provider.provider;
 
-import android.content.ContentProvider;
-import android.content.ContentProviderClient;
-import android.content.ContentResolver;
-import android.database.Cursor;
 import android.net.Uri;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -11,12 +7,12 @@ import static org.mockito.Mockito.*;
 
 import com.austry.content_provider.db.DbBackend;
 import com.austry.content_provider.db.DbOpenHelper;
+import com.austry.content_provider.provider.ArtistsProvider;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 @RunWith(RobolectricTestRunner.class)
 public class ArtistsProviderTest {
@@ -42,14 +38,6 @@ public class ArtistsProviderTest {
             assertThat(e).hasMessage("Wrong URI: " + testWrongUriString)
                     .isInstanceOf(IllegalArgumentException.class);
         }
-    }
-
-    // не нужный тест
-    @Test
-    public void queryAllArtists() {
-        Cursor mockCursor = mock(Cursor.class);
-        when(backend.getAllArtists(null, null, null, null)).thenReturn(mockCursor);
-        Cursor cursor = artistsProvider.query(ArtistsProvider.ARTIST_CONTENT_URI, null, null, null, null);
     }
 
 

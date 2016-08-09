@@ -5,7 +5,7 @@ import android.database.Cursor;
 /**
  * Created by user on 31/07/2016.
  */
-class DbUtils {
+public class DbUtils {
     public static Long getResultLongAndClose(Cursor c) {
         Long id = getResultLong(c, 0);
         closeCursor(c);
@@ -27,5 +27,9 @@ class DbUtils {
         if (c != null && !c.isClosed()) {
             c.close();
         }
+    }
+
+    public static String addTablePrefix(String tableName, String columnAlbums) {
+        return tableName + "." + columnAlbums;
     }
 }
