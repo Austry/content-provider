@@ -167,7 +167,7 @@ public class DbBackendTest {
         Cursor cursor = qb.query(db, null, null, null, null, null, null);
 
         if (cursor != null && cursor.moveToFirst()) {
-            int nameColumnIndex = 4;
+            int nameColumnIndex = 3;
             do {
                 genres.add(cursor.getString(nameColumnIndex));
             } while (cursor.moveToNext());

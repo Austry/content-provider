@@ -7,13 +7,15 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.austry.content_provider.db.contracts.ArtistContract;
 import com.austry.content_provider.db.contracts.ArtistGenreContract;
 import com.austry.content_provider.db.contracts.CoverContract;
-import com.austry.content_provider.db.contracts.DbContract;
 import com.austry.content_provider.db.contracts.GenreContract;
 
 public class DbOpenHelper extends SQLiteOpenHelper {
 
+    private final static String DB_NAME = "artists";
+    private final static int DB_VERSION = 1;
+
     public DbOpenHelper(Context context) {
-        super(context, DbContract.DB_NAME, null, DbContract.DB_VERSION);
+        super(context, DB_NAME, null, DB_VERSION);
     }
 
     @Override
@@ -43,9 +45,9 @@ public class DbOpenHelper extends SQLiteOpenHelper {
         );
 
         sqLiteDatabase.execSQL("CREATE TABLE " + ArtistGenreContract.TABLE_NAME + "(" +
-                ArtistGenreContract.COLUMN_ID + " INTEGER PRIMARY KEY," +
                 ArtistGenreContract.COLUMN_ARTIST_ID + " INTEGER NOT NULL," +
-                ArtistGenreContract.COLUMN_GENRE_ID + " INTEGER NOT NULL" +
+                ArtistGenreContract.COLUMN_GENRE_ID + " INTEGER NOT NULL," +
+                "PRIMARY KEY ("+ArtistGenreContract.COLUMN_ARTIST_ID+","+ArtistGenreContract.COLUMN_GENRE_ID+")"+
                 ")"
         );
 

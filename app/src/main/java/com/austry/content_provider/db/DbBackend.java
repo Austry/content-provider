@@ -19,16 +19,21 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.austry.content_provider.db.DbUtils.getResultLongAndClose;
+
 public class DbBackend {
     private static final String TAG = "DbBackend";
 
     private static final String ALL_ARTISTS_TABLES = ArtistContract.TABLE_NAME +
-            " JOIN " + CoverContract.TABLE_NAME + " ON " + addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_COVER_ID) + " = " + addTablePrefix(CoverContract.TABLE_NAME, CoverContract.COLUMN_ID) +
-            " JOIN " + ArtistGenreContract.TABLE_NAME + " ON " + addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_ID) + " = " + addTablePrefix(ArtistGenreContract.TABLE_NAME, ArtistGenreContract.COLUMN_ARTIST_ID) +
-            " JOIN " + GenreContract.TABLE_NAME + " ON " + addTablePrefix(ArtistGenreContract.TABLE_NAME, ArtistGenreContract.COLUMN_GENRE_ID) + " = " + addTablePrefix(GenreContract.TABLE_NAME, GenreContract.COLUMN_ID) +
+            " JOIN " + CoverContract.TABLE_NAME + " ON " + addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_COVER_ID)
+            + " = " + addTablePrefix(CoverContract.TABLE_NAME, CoverContract.COLUMN_ID) +
+            " JOIN " + ArtistGenreContract.TABLE_NAME + " ON " + addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_ID)
+            + " = " + addTablePrefix(ArtistGenreContract.TABLE_NAME, ArtistGenreContract.COLUMN_ARTIST_ID) +
+            " JOIN " + GenreContract.TABLE_NAME + " ON " + addTablePrefix(ArtistGenreContract.TABLE_NAME, ArtistGenreContract.COLUMN_GENRE_ID)
+            + " = " + addTablePrefix(GenreContract.TABLE_NAME, GenreContract.COLUMN_ID) +
             " GROUP BY " + addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_ID);
 
-    private static final String[] ALL_ARTISTS_COLUMNS = new String[]{
+    private static final String[] ALL_ARTISTS_COLUMNS = {
             addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_ID),
             addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_NAME),
             addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_ALBUMS),
@@ -82,7 +87,7 @@ public class DbBackend {
     public void update(Artist artist) {
         SQLiteDatabase base = dbHelper.getWritableDatabase();
         base.beginTransaction();
-        try{
+        try {
             long coverId = getCoverId(base, artist.getId());
             base.update(CoverContract.TABLE_NAME,
                     fillCoverValues(artist.getCover()),
@@ -93,7 +98,7 @@ public class DbBackend {
                     ArtistContract.COLUMN_ID + " = ?",
                     new String[]{String.valueOf(artist.getId())});
             base.setTransactionSuccessful();
-        }finally {
+        } finally {
             base.endTransaction();
         }
 
@@ -107,10 +112,8 @@ public class DbBackend {
                 ArtistContract.COLUMN_ID + " = ?",
                 new String[]{String.valueOf(artistId)},
                 null, null, null);
-        if (cursor != null && cursor.moveToFirst()) {
-            result = cursor.getLong(0);
-            cursor.close();
-        }
+        result = getResultLongAndClose(cursor);
+
         return result;
     }
 
@@ -137,10 +140,7 @@ public class DbBackend {
         long result = 0;
         SQLiteDatabase base = dbHelper.getReadableDatabase();
         Cursor cursor = base.rawQuery("select count(id) from " + ArtistContract.TABLE_NAME, null);
-        if (cursor != null && cursor.moveToFirst()) {
-            result = cursor.getLong(0);
-            cursor.close();
-        }
+        result = getResultLongAndClose(cursor);
         return result;
     }
 
@@ -208,7 +208,6 @@ public class DbBackend {
     }
 
     private ContentValues fillArtistValues(Artist artist, long coverId) {
-
         ContentValues values = new ContentValues();
         values.put(ArtistContract.COLUMN_NAME, artist.getName());
         values.put(ArtistContract.COLUMN_ALBUMS, artist.getAlbums());
@@ -237,6 +236,4 @@ public class DbBackend {
     private static String addTablePrefix(String tableName, String columnAlbums) {
         return tableName + "." + columnAlbums;
     }
-
-
 }
