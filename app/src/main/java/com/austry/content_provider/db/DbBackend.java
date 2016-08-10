@@ -27,15 +27,18 @@ public class DbBackend {
     private static final String TAG = "DbBackend";
 
     private static final String ALL_ARTISTS_TABLES = ArtistContract.TABLE_NAME +
-            " JOIN " + CoverContract.TABLE_NAME + " ON " + addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_COVER_ID)
+            " JOIN " + CoverContract.TABLE_NAME + " ON " +
+            addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_COVER_ID)
             + " = " + addTablePrefix(CoverContract.TABLE_NAME, CoverContract.COLUMN_ID) +
-            " JOIN " + ArtistGenreContract.TABLE_NAME + " ON " + addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_ID)
+            " JOIN " + ArtistGenreContract.TABLE_NAME + " ON "
+            + addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_ID)
             + " = " + addTablePrefix(ArtistGenreContract.TABLE_NAME, ArtistGenreContract.COLUMN_ARTIST_ID) +
-            " JOIN " + GenreContract.TABLE_NAME + " ON " + addTablePrefix(ArtistGenreContract.TABLE_NAME, ArtistGenreContract.COLUMN_GENRE_ID)
+            " JOIN " + GenreContract.TABLE_NAME + " ON "
+            + addTablePrefix(ArtistGenreContract.TABLE_NAME, ArtistGenreContract.COLUMN_GENRE_ID)
             + " = " + addTablePrefix(GenreContract.TABLE_NAME, GenreContract.COLUMN_ID) +
             " GROUP BY " + addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_ID);
 
-    private static final String[] ALL_ARTISTS_COLUMNS = {
+    public static final String[] ALL_ARTISTS_COLUMNS = {
             ArtistsProviderContract.ID,
             ArtistsProviderContract.NAME,
             ArtistsProviderContract.ALBUMS,
@@ -47,7 +50,7 @@ public class DbBackend {
             ArtistsProviderContract.GENRES
     };
 
-    private DbOpenHelper dbHelper;
+    private final DbOpenHelper dbHelper;
 
     public DbBackend(Context context) {
         dbHelper = new DbOpenHelper(context);

@@ -16,16 +16,13 @@ import org.robolectric.RobolectricTestRunner;
 
 @RunWith(RobolectricTestRunner.class)
 public class ArtistsProviderTest {
-    private DbOpenHelper helper;
     private DbBackend backend;
     private ArtistsProvider artistsProvider;
-
 
     @Before
     public void setUp() {
         backend = mock(DbBackend.class);
         artistsProvider = new ArtistsProvider(backend);
-
     }
 
     @Test
@@ -39,6 +36,4 @@ public class ArtistsProviderTest {
                     .isInstanceOf(IllegalArgumentException.class);
         }
     }
-
-
 }

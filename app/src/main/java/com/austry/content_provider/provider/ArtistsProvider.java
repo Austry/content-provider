@@ -42,10 +42,6 @@ public class ArtistsProvider extends ContentProvider {
 
     private DbBackend dbBackend;
 
-    public ArtistsProvider() {
-
-    }
-
     @VisibleForTesting
     ArtistsProvider(DbBackend dbBackend) {
         this.dbBackend = dbBackend;
@@ -58,8 +54,7 @@ public class ArtistsProvider extends ContentProvider {
         ObjectMapper mapper = new ObjectMapper();
         InputStream jsonInputStream = getContext().getResources().openRawResource(R.raw.artists);
         try {
-            List<Artist> artists = mapper.readValue(jsonInputStream, new TypeReference<List<Artist>>() {
-            });
+            List<Artist> artists = mapper.readValue(jsonInputStream, new TypeReference<List<Artist>>(){});
             for (int i = 0, size = artists.size(); i < size; i++) {
                 dbBackend.insertArtist(artists.get(i));
             }
