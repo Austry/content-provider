@@ -42,6 +42,8 @@ public class ArtistsProvider extends ContentProvider {
 
     private DbBackend dbBackend;
 
+    public ArtistsProvider(){}
+
     @VisibleForTesting
     ArtistsProvider(DbBackend dbBackend) {
         this.dbBackend = dbBackend;
@@ -50,17 +52,6 @@ public class ArtistsProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        dbBackend = new DbBackend(getContext());
-        ObjectMapper mapper = new ObjectMapper();
-        InputStream jsonInputStream = getContext().getResources().openRawResource(R.raw.artists);
-        try {
-            List<Artist> artists = mapper.readValue(jsonInputStream, new TypeReference<List<Artist>>(){});
-            for (int i = 0, size = artists.size(); i < size; i++) {
-                dbBackend.insertArtist(artists.get(i));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         return true;
     }
 
@@ -68,6 +59,7 @@ public class ArtistsProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String orderBy) {
         checkUri(uri);
+        checkAndInitBackend();
         return dbBackend.getAllArtists(projection, selection, selectionArgs, orderBy);
     }
 
@@ -89,6 +81,7 @@ public class ArtistsProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
         checkUri(uri);
+        checkAndInitBackend();
         dbBackend.insertArtist(contentValues);
         tryNotifyChanges(uri);
         return uri;
@@ -98,6 +91,7 @@ public class ArtistsProvider extends ContentProvider {
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         checkUri(uri);
+        checkAndInitBackend();
         int rowAffected = dbBackend.delete(selection,selectionArgs);
         tryNotifyChanges(uri);
         return rowAffected;
@@ -106,12 +100,29 @@ public class ArtistsProvider extends ContentProvider {
     @Override
     public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
         checkUri(uri);
+        checkAndInitBackend();
         int affected = dbBackend.update(contentValues, selection, selectionArgs);
         tryNotifyChanges(uri);
         return affected;
     }
 
-    //нужно ли это?
+    private void checkAndInitBackend(){
+        if(dbBackend == null) {
+            dbBackend = new DbBackend(getContext());
+            ObjectMapper mapper = new ObjectMapper();
+            InputStream jsonInputStream = getContext().getResources().openRawResource(R.raw.artists);
+            try {
+                List<Artist> artists = mapper.readValue(jsonInputStream, new TypeReference<List<Artist>>() {
+                });
+                for (int i = 0, size = artists.size(); i < size; i++) {
+                    dbBackend.insertArtist(artists.get(i));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private void tryNotifyChanges(Uri uri) {
         Context context = getContext();
         if (context != null) {
@@ -130,5 +141,4 @@ public class ArtistsProvider extends ContentProvider {
                 throw new IllegalArgumentException("Wrong URI: " + uri);
         }
     }
-
 }

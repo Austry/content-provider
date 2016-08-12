@@ -72,6 +72,23 @@ public class DbBackendTest {
     }
 
     @Test
+    public void checkJoin(){
+        SQLiteDatabase db = helper.getReadableDatabase();
+        backend.insertArtist(buildTestArtistNoGenres("1"));
+        backend.insertArtist(buildTestArtistNoGenres("2"));
+        backend.insertArtist(buildTestArtistNoGenres("3"));
+        assertThat(getCount(db, ArtistContract.TABLE_NAME)).isEqualTo(3);
+        Cursor cursor = backend.getAllArtists();
+        int cursorCounter = 0;
+        if(cursor != null && cursor.moveToFirst()){
+            do {
+                cursorCounter++;
+            }while (cursor.moveToNext());
+        }
+        assertThat(cursorCounter).isEqualTo(3);
+    }
+
+    @Test
     public void getAll() {
         Artist testArtist = buildTestArtist();
         backend.insertArtist(testArtist);
@@ -115,7 +132,19 @@ public class DbBackendTest {
         testArtist.setAlbums(4);
         testArtist.setTracks(2);
         testArtist.setDescription("desc");
-        testArtist.setGenres(asList("rock", "punk"));
+//        testArtist.setGenres(asList("rock", "punk"));
+        testArtist.setLink("link");
+        return testArtist;
+    }
+
+    private Artist buildTestArtistNoGenres(String name){
+        Artist testArtist = new Artist();
+        testArtist.setName(name);
+        testArtist.setCover(new Cover("url_small", "url_big"));
+        testArtist.setAlbums(4);
+        testArtist.setTracks(2);
+        testArtist.setDescription("desc");
+//        testArtist.setGenres(asList("rock", "punk"));
         testArtist.setLink("link");
         return testArtist;
     }

@@ -21,7 +21,7 @@ public class DbOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        sqLiteDatabase.enableWriteAheadLogging();
+        enableWal(sqLiteDatabase);
 
         sqLiteDatabase.execSQL("CREATE TABLE " + ArtistContract.TABLE_NAME + "(" +
                 ArtistContract.COLUMN_ID + " INTEGER PRIMARY KEY, " +
@@ -53,7 +53,6 @@ public class DbOpenHelper extends SQLiteOpenHelper {
                 "PRIMARY KEY ("+ArtistGenreContract.COLUMN_ARTIST_ID+","+ArtistGenreContract.COLUMN_GENRE_ID+")"+
                 ")"
         );
-
     }
 
     @Override
@@ -64,5 +63,12 @@ public class DbOpenHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ArtistGenreContract.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + CoverContract.TABLE_NAME);
         onCreate(sqLiteDatabase);
+    }
+
+    private void enableWal(SQLiteDatabase sqLiteDatabase) {
+        Cursor c = sqLiteDatabase.rawQuery("PRAGMA journal_mode=wal", null);
+        if(c != null){
+            c.close();
+        }
     }
 }

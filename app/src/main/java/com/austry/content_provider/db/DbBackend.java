@@ -27,13 +27,13 @@ public class DbBackend {
     private static final String TAG = "DbBackend";
 
     private static final String ALL_ARTISTS_TABLES = ArtistContract.TABLE_NAME +
-            " JOIN " + CoverContract.TABLE_NAME + " ON " +
+            " LEFT JOIN " + CoverContract.TABLE_NAME + " ON " +
             addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_COVER_ID)
             + " = " + addTablePrefix(CoverContract.TABLE_NAME, CoverContract.COLUMN_ID) +
-            " JOIN " + ArtistGenreContract.TABLE_NAME + " ON "
+            " LEFT JOIN " + ArtistGenreContract.TABLE_NAME + " ON "
             + addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_ID)
             + " = " + addTablePrefix(ArtistGenreContract.TABLE_NAME, ArtistGenreContract.COLUMN_ARTIST_ID) +
-            " JOIN " + GenreContract.TABLE_NAME + " ON "
+            " LEFT JOIN " + GenreContract.TABLE_NAME + " ON "
             + addTablePrefix(ArtistGenreContract.TABLE_NAME, ArtistGenreContract.COLUMN_GENRE_ID)
             + " = " + addTablePrefix(GenreContract.TABLE_NAME, GenreContract.COLUMN_ID) +
             " GROUP BY " + addTablePrefix(ArtistContract.TABLE_NAME, ArtistContract.COLUMN_ID);
@@ -106,7 +106,6 @@ public class DbBackend {
             long coverId = base.insert(CoverContract.TABLE_NAME, null, coverValues);
             cv.put(ArtistContract.COLUMN_COVER_ID, coverId);
         }
-
         artistId = base.insert(ArtistContract.TABLE_NAME, null, cv);
         return artistId;
     }
@@ -140,7 +139,6 @@ public class DbBackend {
                 new String[]{String.valueOf(artistId)},
                 null, null, null);
         result = getResultLongAndClose(cursor);
-
         return result;
     }
 
@@ -199,8 +197,10 @@ public class DbBackend {
 
     private ContentValues fillCoverValues(Cover cover) {
         ContentValues values = new ContentValues();
-        values.put(CoverContract.COLUMN_URL_BIG, cover.getBig());
-        values.put(CoverContract.COLUMN_URL_SMALL, cover.getSmall());
+        if (cover != null) {
+            values.put(CoverContract.COLUMN_URL_BIG, cover.getBig());
+            values.put(CoverContract.COLUMN_URL_SMALL, cover.getSmall());
+        }
         return values;
     }
 
@@ -229,6 +229,4 @@ public class DbBackend {
                 genres.toArray(new String[genres.size()]),
                 null, null, null);
     }
-
-
 }
