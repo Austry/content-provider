@@ -106,8 +106,9 @@ public class ArtistsProvider extends ContentProvider {
         return affected;
     }
 
-    private void checkAndInitBackend(){
+    private synchronized void checkAndInitBackend(){
         if(dbBackend == null) {
+
             dbBackend = new DbBackend(getContext());
             ObjectMapper mapper = new ObjectMapper();
             InputStream jsonInputStream = getContext().getResources().openRawResource(R.raw.artists);
