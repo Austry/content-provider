@@ -132,7 +132,7 @@ public class DbBackendTest {
         testArtist.setAlbums(4);
         testArtist.setTracks(2);
         testArtist.setDescription("desc");
-//        testArtist.setGenres(asList("rock", "punk"));
+        testArtist.setGenres(asList("rock", "punk"));
         testArtist.setLink("link");
         return testArtist;
     }

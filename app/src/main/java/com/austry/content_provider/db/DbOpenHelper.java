@@ -19,10 +19,16 @@ public class DbOpenHelper extends SQLiteOpenHelper {
         super(context, DB_NAME, null, DB_VERSION);
     }
 
+
+    @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+
+        db.enableWriteAheadLogging();
+    }
+
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        enableWal(sqLiteDatabase);
-
         sqLiteDatabase.execSQL("CREATE TABLE " + ArtistContract.TABLE_NAME + "(" +
                 ArtistContract.COLUMN_ID + " INTEGER PRIMARY KEY, " +
                 ArtistContract.COLUMN_NAME + " TEXT NOT NULL UNIQUE, " +
@@ -65,10 +71,4 @@ public class DbOpenHelper extends SQLiteOpenHelper {
         onCreate(sqLiteDatabase);
     }
 
-    private void enableWal(SQLiteDatabase sqLiteDatabase) {
-        Cursor c = sqLiteDatabase.rawQuery("PRAGMA journal_mode=wal", null);
-        if(c != null){
-            c.close();
-        }
-    }
 }
